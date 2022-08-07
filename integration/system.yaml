@@ -1,0 +1,23 @@
+####################################################
+#                                                  #
+#                     SYSTEME                      #
+#                                                  #
+####################################################
+sensor:
+  - platform: time_date
+    display_options:
+      - 'time'
+      - 'date'
+      - 'date_time'
+      - 'date_time_utc'
+      - 'date_time_iso'
+      - 'time_date'
+      - 'time_utc'
+
+template:
+  - sensor:
+      ## utility 
+    - name: time_date
+      state: >-
+        {{ as_timestamp(states('sensor.date_time_iso')) | timestamp_custom('%A %B %-d, %I:%M %p') }}
+      icon: "mdi:calendar-clock"

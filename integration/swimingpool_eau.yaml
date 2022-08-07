@@ -1,0 +1,41 @@
+####################################################
+#                                                  #
+#                   PISCINE                        #
+#                                                  #
+####################################################
+# https://raw.githubusercontent.com/remycrochon/home-assistant/master/packages/piscine.yaml
+
+# ############################
+# #  Input boolean
+input_boolean:
+  # EV appoint Piscine en mode automatique
+  piscine_arret_force:
+    name: Piscine Arret Forcé
+    icon: mdi:head-snowflake
+
+  # EV appoint Piscine en mode automatique
+  ev_eau_piscine:
+    name: Ev Piscine
+    icon: mdi:water
+    initial: false
+
+# ############################  Sensor
+sensor:
+  # Affichage du temps de fonctionnement de l'électrovanne appoint d'eau ce jour
+  - platform: history_stats
+    name: Ev Eau tps ouverture jour
+    entity_id: switch.cde_ev_eau
+    state: "on"
+    type: time
+    start: "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}"
+    end: "{{ now() }}"
+
+#   # Affichage du temps de fonctionnement de l'électrovanne appoint d'eau sur 7 jours
+#   - platform: history_stats
+#     name: Ev eau sur 7j
+#     entity_id: switch.cde_ev_eau
+#     state: 'on'
+#     type: time
+#     end: "{{ now().replace(hour=0, minute=0, second=0) }}"
+#     duration:
+#       days: 7

@@ -1,0 +1,93 @@
+####################################################
+#                                                  #
+#                   pH Piscine                     #
+#                   Simulate sensors               #
+####################################################
+
+
+############################
+#  Use simulated value or true sensor
+# true if simulated
+input_boolean:
+
+  simu_orp_sensor:
+    name: b_orp_sensor
+    initial: true
+
+  simu_ph_sensor:
+    name: b_ph_sensor
+    initial: true
+
+  simu_pressure_sensor:
+    name: b_pression_filtre
+    initial: true
+
+############################
+
+#####################
+# Sensors values
+template:
+  - sensor:
+    - name: f_orp_ezo
+      unique_id: f_orp_ezo
+      unit_of_measurement: "mV"
+      state: >
+        {% if is_state('input_boolean.b_orp_sensor', 'off') and 'sensor.orp_ezo' is defined %}
+          {{ states('sensor.orp_ezo') | float |round(0, default=666) }}
+        {% else %}
+            {{ states('sensor.simul_orp_ezo') | float |round(0, default=656)   }}
+        {% endif %}
+    - name: f_ph_ezo
+      unique_id: f_ph_ezo
+      unit_of_measurement: "pH"
+      state: >
+        {% if is_state('input_boolean.b_ph_sensor', 'off') and 'sensor.ph_ezo' is defined %}
+          {{ states("sensor.ph_ezo") | float |round(2, default=7.11) }}
+        {% else %}
+            {{ states('sensor.simul_ph_ezo') | float |round(1, default=7.1)  }}
+        {% endif %}
+    - name: f_pression_filtre
+      unique_id: f_pression_filtre
+      unit_of_measurement: "bar"
+      state: >
+        {% if is_state('input_boolean.b_pression_filtre', 'off') and 'sensor.pression_filtre' is defined %}
+          {{ (states('sensor.pression_filtre') | float  /100000 )|round(2, default=0.81) }}
+        {% else %}
+            {{ (states('sensor.simul_pression_filtre') | float  /100000 )|round(2, default=0.8) }}
+        {% endif %}
+
+
+#####################
+# Simulation
+sensor:
+  - platform: simulated
+    name: simul_orp_ezo
+    unit: "mV"
+    amplitude: 20 # Turns on the periodic contribution
+    mean: 730
+    spread: 25
+    period: 3600
+    phase: 20
+    seed: 999
+    relative_to_epoch: false
+  - platform: simulated
+    name: simul_ph_ezo
+    unit: "pH"
+    amplitude: 0.15 # Turns on the periodic contribution
+    mean: 7.2
+    spread: 0.1
+    period: 3600
+    phase: 20
+    seed: 998
+    relative_to_epoch: false
+  - platform: simulated
+    name: simul_pression_filtre
+    unit: "Pa"
+    amplitude: 3000 # Turns on the periodic contribution
+    mean: 90000
+    spread: 10000
+    period: 7200
+    phase: 20
+    seed: 999
+    relative_to_epoch: false
+    #

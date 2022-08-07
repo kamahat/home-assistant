@@ -1,0 +1,137 @@
+####################################################
+#                                                  #
+#                   PISCINE                        #
+#                                                  #
+####################################################
+# https://raw.githubusercontent.com/remycrochon/home-assistant/master/packages/piscine.yaml
+
+# ############################
+# #  Input DateTime
+input_datetime:
+
+  heure_ouv_volet_pisc:
+    name: Heure Ouv Volet Auto
+    has_date: false
+    has_time: true
+
+  heure_ferm_volet_pisc:
+    name: Heure Ferm Volet Auto
+    has_date: false
+    has_time: true
+
+
+# ############################
+# #  Input boolean
+input_boolean:
+
+  # Volet Piscine en mode automatique
+  volet_piscine_auto:
+    name: Volet Piscine (Auto=1)
+    icon: mdi:garage
+    initial: false
+
+# ## Commande du volet roulant via un Cover
+# cover:
+#   - platform: template
+#     covers:
+#       volet_piscine:
+#         device_class: garage
+#         friendly_name: "Volet Piscine"
+#         value_template: "{{is_state('binary_sensor.volet_piscine_ferme', 'off')}}"
+#         open_cover:
+#           service: script.do_nothing 
+#           #script.volet_piscine_ouverture
+#         close_cover:
+#           service: script.do_nothing
+#           #script.volet_piscine_fermeture
+#         icon_template: >-
+#           {% if is_state('binary_sensor.volet_piscine_ferme', 'on') %}
+#             mdi:garage
+#           {% else %} 
+#             {% if is_state('binary_sensor.volet_piscine_ferme', 'off') %}
+#             mdi:garage-open
+#           {% else %}
+#             mdi:garage-alert
+#           {% endif %}
+#           {% endif %}
+
+# script:
+#   volet_piscine_ouverture:
+#     alias: volet_piscine_ouverture
+#     sequence:
+#     - service: switch.turn_off
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ferm_volet_piscine
+#     - delay: 00:00:02
+#     - service: switch.turn_on
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ouv_volet_piscine
+#     - delay: 00:00:05
+#     - service: switch.turn_off
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ouv_volet_piscine
+#     mode: single
+#     icon: mdi:garage-open
+#   volet_piscine_fermeture:
+#     alias: volet_piscine_fermeture
+#     sequence:
+#     - service: switch.turn_off
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ouv_volet_piscine
+#     - delay: 00:00:02
+#     - service: switch.turn_on
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ferm_volet_piscine
+#     - service: switch.turn_on
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ecl_piscine
+#     - delay: 00:01:30
+#     - service: switch.turn_off
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ferm_volet_piscine
+#     - service: switch.turn_off
+#       data: {}
+#       target:
+#         entity_id:
+#         - switch.cde_ecl_piscine
+#     mode: single
+#     icon: mdi:garage
+  # volet_piscine_stop:
+  #   alias: volet_piscine_stop
+  #   sequence:
+  #   - service: switch.turn_off
+  #     data: {}
+  #     target:
+  #       entity_id:
+  #       - switch.cde_ferm_volet_piscine
+  #       - switch.cde_ouv_volet_piscine
+  #   - delay: 00:00:02
+  #   - service: switch.turn_on
+  #     data: {}
+  #     target:
+  #       entity_id: switch.cde_ferm_volet_piscine
+  #   - delay:
+  #       hours: 0
+  #       minutes: 0
+  #       seconds: 2
+  #       milliseconds: 0
+  #   - service: switch.turn_off
+  #     data: {}
+  #     target:
+  #       entity_id: switch.cde_ferm_volet_piscine
+  #   mode: single
+  #   icon: mdi:garage-open
