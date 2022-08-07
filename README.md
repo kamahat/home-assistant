@@ -76,3 +76,7 @@ automation manual files are in /config/integreation/automations
 4) go to appdaemon/apps/filtration_piscine.yaml and set your
 - swiming pool temp sensor : "sensor.temp_piscine"
 - pump switch "switch.ppe_filtration"
+
+## Front-end
+
+It use Dwains dashboard v3
