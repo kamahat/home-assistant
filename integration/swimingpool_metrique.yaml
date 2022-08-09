@@ -88,3 +88,11 @@ template:
       unit_of_measurement: "kWh"
       device_class: "energy"
       state_class: "total"  
+
+notify:
+
+# Log values in files
+  - name: log_piscine
+    platform: file
+    filename: conso_piscine.csv
+    timestamp: True
