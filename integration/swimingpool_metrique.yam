@@ -1,0 +1,98 @@
+####################################################
+#                                                  #
+#                   PISCINE                        #
+#                   metrique                       #
+####################################################
+# https://raw.githubusercontent.com/remycrochon/home-assistant/master/packages/piscine.yaml
+
+utility_meter:
+# usage jour  
+  energy_pisc_usage_daily:
+    source: sensor.pzem_pisc_energy
+    cycle: daily
+    tariffs:
+      - hp
+      - hc
+# usage semaine
+  energy_pisc_usage_weekly:
+    source: sensor.pzem_pisc_energy
+    cycle: weekly
+    tariffs:
+      - hp
+      - hc
+# usage mois
+  energy_pisc_usage_monthly:
+    source: sensor.pzem_pisc_energy
+    cycle: monthly
+    tariffs:
+      - hp
+      - hc
+#usage an
+  energy_pisc_usage_yearly:
+    source: sensor.pzem_pisc_energy
+    cycle: yearly
+    tariffs:
+      - hp
+      - hc
+############################
+#  Sensor
+
+sensor:
+  # Affichage du temps de fonctionnement de la pompe ce jour
+  - platform: history_stats
+    name: Ma Ppe Piscine Jour
+    entity_id: binary_sensor.ppe_piscine_en_marche
+    state: "on"
+    type: time
+    start: "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}"
+    end: "{{ now() }}"
+
+############################
+#  template Utiliy meter
+
+template:
+  - sensor:
+    - name: "Energie Piscine Jour"
+      unique_id: "energy_pisc_daily" 
+      state: >-
+        {% set p = states('sensor.energy_pisc_usage_daily_hp') | float(default=0) | round(2) %}
+        {% set o = states('sensor.energy_pisc_usage_daily_hc') | float(default=0) | round(2) %}
+        {{ (o + p) | round(2) }}
+      unit_of_measurement: "kWh"
+      device_class: "energy"
+      state_class: "total"
+
+    - name: "energy_pisc_weekly"
+      state: >-
+        {% set p = states('sensor.energy_pisc_usage_weekly_hp') | float(default=0) | round(2) %}
+        {% set o = states('sensor.energy_pisc_usage_weekly_hc') | float(default=0) | round(2) %}
+        {{ (o + p) | round(2) }}
+      unit_of_measurement: "kWh"
+      device_class: "energy"
+      state_class: "total"  
+
+    - name: "energy_pisc_monthly"
+      state: >-
+        {% set p = states('sensor.energy_pisc_usage_monthly_hp') | float(default=0) | round(2) %}
+        {% set o = states('sensor.energy_pisc_usage_monthly_hc') | float(default=0) | round(2) %}
+        {{ (o + p) | round(2) }}
+      unit_of_measurement: "kWh"
+      device_class: "energy"
+      state_class: "total"  
+
+    - name: "energy_pisc_yearly"
+      state: >-
+        {% set p = states('sensor.energy_pisc_usage_yearly_hp') | float(default=0) | round(2) %}
+        {% set o = states('sensor.energy_pisc_usage_yearly_hc') | float(default=0) | round(2) %}
+        {{ (o + p) | round(2) }}
+      unit_of_measurement: "kWh"
+      device_class: "energy"
+      state_class: "total"  
+
+notify:
+
+# Log values in files
+  - name: log_piscine
+    platform: file
+    filename: conso_piscine.csv
+    timestamp: True
