@@ -90,7 +90,6 @@ template:
       state_class: "total"  
 
 notify:
-
 # Log values in files
   - name: log_piscine
     platform: file
