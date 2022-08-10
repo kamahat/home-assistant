@@ -1,0 +1,54 @@
+###################################
+# Estimated sensor of Salt water
+
+
+sensor:
+# Estimated sensor of Salt water
+  - platform: template
+    sensors:
+      e_salt:
+        value_template: >-
+          {% set a=states('input_number.e_salt_adjuste')|float(default=0) %}
+          {% set t=states('input_number.mem_temp_piscine')|float(default=25) %}
+          {% set C=states('input_number.salt_tds')|float(default=3) %}
+          {% set Rt=(C/(42.914*(0.6766097+(t*2.00564/100)))) %}
+          {{ (0.008 + sqrt(Rt)*(-0.1692 + 14.0941*Rt+2.7081*Rt*Rt) + Rt*(25.3851 - 7.0261*Rt)) |round(0) }}
+        unit_of_measurement: 'g/l'
+        icon_template: mdi:react
+        friendly_name: "Concentration Sel Estimé"
+
+input_number:
+  e_salt_adjuste:
+    min: -100
+    max: 100
+    unit_of_measurement: '%'
+    icon: mdi:react
+    mode: box
+    initial: 0
+  # taux de sel cible
+  salt_target:
+    min: 0
+    max: 6
+    step: 0.1
+    mode: box
+    unit_of_measurement: 'g/l'
+    icon: mdi:react
+    initial: 3
+  # conductivité mesuré (TDS)
+  salt_tds:
+    min: 0
+    max: 100
+    step: 0.1
+    mode: box
+    unit_of_measurement: 'mS/cm'
+    icon: mdi:react
+    initial: 3
+  # taux prduction sel
+  salt_production:
+    min: 0
+    max: 30
+    step: 0.1
+    mode: box
+    unit_of_measurement: 'g/h'
+    icon: mdi:react
+    initial: 10
