@@ -12,15 +12,15 @@ input_boolean:
 
   simu_orp_sensor:
     name: b_orp_sensor
-    initial: true
+    initial: off
 
   simu_ph_sensor:
     name: b_ph_sensor
-    initial: true
+    initial: off
 
   simu_pressure_sensor:
     name: b_pression_filtre
-    initial: true
+    initial: off
 
 ############################
 
@@ -32,28 +32,28 @@ template:
       unique_id: f_orp_ezo
       unit_of_measurement: "mV"
       state: >
-        {% if is_state('input_boolean.b_orp_sensor', 'off') and 'sensor.orp_ezo' is defined %}
-          {{ states('sensor.orp_ezo') | float |round(0, default=666) }}
+        {% if is_state('input_boolean.simu_orp_sensor', 'off') %}
+          {{ states('sensor.orp_ezo') | float(0) |round(0, default=666) }}
         {% else %}
-            {{ states('sensor.simul_orp_ezo') | float |round(0, default=656)   }}
+            {{ states('sensor.simul_orp_ezo') | float(0) |round(0, default=656) }}
         {% endif %}
     - name: f_ph_ezo
       unique_id: f_ph_ezo
       unit_of_measurement: "pH"
       state: >
-        {% if is_state('input_boolean.b_ph_sensor', 'off') and 'sensor.ph_ezo' is defined %}
-          {{ states("sensor.ph_ezo") | float |round(2, default=7.11) }}
+        {% if is_state('input_boolean.simu_ph_sensor', 'off') %}
+          {{ states('sensor.ph_ezo') | float(0) |round(2, default=7.11) }}
         {% else %}
-            {{ states('sensor.simul_ph_ezo') | float |round(1, default=7.1)  }}
+            {{ states('sensor.simul_ph_ezo') | float(0) |round(1, default=7.12) }}
         {% endif %}
     - name: f_pression_filtre
       unique_id: f_pression_filtre
       unit_of_measurement: "bar"
       state: >
-        {% if is_state('input_boolean.b_pression_filtre', 'off') and 'sensor.pression_filtre' is defined %}
-          {{ (states('sensor.pression_filtre') | float  /100000 )|round(2, default=0.81) }}
+        {% if is_state('input_boolean.simu_pressure_sensor', 'off') %}
+          {{ states('sensor.pression_filtre') | float(0) | round(2, default=0.8) }}
         {% else %}
-            {{ (states('sensor.simul_pression_filtre') | float  /100000 )|round(2, default=0.8) }}
+            {{ (states('sensor.simul_pression_filtre') | float(0)  /100000 )|round(2, default=0.81) }}
         {% endif %}
 
 
