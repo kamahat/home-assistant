@@ -1,0 +1,435 @@
+substitutions:
+  device_name: piscine2
+  friendly_name: Pilotage Piscine
+  device_description: remontée des infos 
+
+esp32:
+  board: esp32dev
+  framework:
+#    type: esp-idf
+    version: recommended
+
+esphome:
+  name: ${device_name}
+  # platform: ESP32
+  # board: esp-wrover-kit
+  #esp32:
+
+
+
+packages : 
+  wifi: !include common/wifi.yaml
+  device_base: !include common/base.yaml
+
+# Enable logging
+logger:
+  #baud_rate: 0   # disable logging via UART, help to avoid numerous crash with ESP_LOGD
+  level: debug
+
+# Example configuration entry
+web_server:
+  port: 80
+
+# We indicate the pins where we have connected TX and RX of the device, taking into account that TX-> RX, RX-> TX must always be inverted
+uart:
+  - id: ubus
+    rx_pin: GPIO16  # IO16
+    tx_pin: GPIO17  # IO7  
+    baud_rate: 9600
+    data_bits: 8
+    parity: NONE
+    # stop_bits: 1        # stop_bits is only necessary if indicated by the log while testing the circuit
+
+modbus:
+ id: mbus
+ uart_id: ubus
+
+# Dallas  
+dallas:
+  pin: GPIO33
+  update_interval: 120s
+
+# pour Sonce i2c (EZO)
+i2c:
+  sda: 21
+  scl: 22
+  scan: true
+  id: bus_a
+
+sensor:
+  #### Dallas ####
+  - platform: dallas
+    name: temp_piscine
+    id: temp_piscine
+    resolution: 10
+    address: 0x1E0416843A1EFF28
+    # id: pool_water_temperature
+    icon: mdi:pool-thermometer
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    
+  - platform: dht
+    pin: GPIO5
+    temperature:
+      name: "temp_pisc_exterieur"
+      unit_of_measurement: "°C"
+      device_class: "temperature"
+      state_class: "measurement"
+      accuracy_decimals: 1
+    humidity:
+      name: "humidity_pisc"
+      unit_of_measurement: "%RH"
+      state_class: "measurement"
+    update_interval: 60s
+    model: DHT11
+
+     #### PZEM-004T V3 ####
+     ##################################################################################
+     #### Phase 1 ####
+  # We will use pzemac or pzem004t depending on whether we are using a PZEM-004T V3 or V1
+  - platform: pzemac
+    modbus_id: mbus
+    address: 4
+    current:
+      name: pzem_pisc_courant
+      accuracy_decimals: 3 
+      unit_of_measurement: "A"
+    voltage:
+      id: pzem_pisc_tension
+      name: "Piscine Tension"
+      accuracy_decimals: 2
+      unit_of_measurement: "V"
+    power:
+      name: pzem_pisc_puissance
+      unit_of_measurement: "W"
+      accuracy_decimals: 1
+      id: ph1_puissance
+    frequency:
+      name: "Piscine Frequence Moteur"
+      unit_of_measurement: "Hz"
+      accuracy_decimals: 1
+    power_factor:
+      name: "pzem_pisc_factpuiss"
+      unit_of_measurement: "fp"
+      accuracy_decimals: 2
+      id: ph1_facteur_puissance
+    energy:
+      name: "pzem_pisc_energy"
+      unit_of_measurement: "kWh"
+      filters:
+        - multiply: 0.001
+      accuracy_decimals: 1
+      id: ph1_energy
+    update_interval: 15s
+
+  - platform: template
+    name: "Piscine Energie cumulée"
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    update_interval: 5s
+    icon: mdi:power
+    lambda: return (( (id(ph1_energy).state)));
+    
+  - platform: total_daily_energy
+    name: "Piscine Consommation du jour"
+    power_id: ph1_puissance 
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    id: conso_du_jour_ph1
+    filters:
+        # Multiplication factor from W to kW is 0.001
+        - multiply: 0.001
+    icon: mdi:counter
+
+#  - platform: template
+#    name: "Piscine Consommation de la veille"
+#    id: template_ph1_veille
+#    unit_of_measurement: "kwh"
+#    accuracy_decimals: 2
+#    icon: mdi:power
+#    update_interval: 10s
+    
+  - platform: template
+    name: "Piscine Puissance Apparente"
+    id: ph1_puissance_apparente
+    unit_of_measurement: "VA"
+    accuracy_decimals: 2
+    update_interval: 10s
+    icon: mdi:power
+    lambda: return ( (id(ph1_puissance).state/id(ph1_facteur_puissance).state));
+
+#  - platform: template
+#    name: "Piscine Puissance Réactive"
+#    id: ph1_puissance_reactive
+#    unit_of_measurement: "VAr"
+#    accuracy_decimals: 2
+#    update_interval: 10s
+#    icon: mdi:power
+#    lambda: return ( ( sqrt( (id(ph1_puissance_reactive).state)*(id(ph1_puissance_reactive).state)   -  (id(ph1_facteur_puissance).state)*(id(ph1_facteur_puissance).state) ) )  );
+
+# Mesure du pH
+#
+  - platform: template
+#  - platform: ezo
+#    address: 99
+    id: esp125_ph_ezo
+    name: ph_ezo
+
+    unit_of_measurement: "pH"
+    accuracy_decimals: 1
+    update_interval: 60s
+    icon: mdi:ph
+    lambda: |-
+      return id(internal_Ph).state ;
+
+  #  moyenne sur 15 mn-affichage toutes les 5mn
+#    filters:
+#      - sliding_window_moving_average:
+#          window_size: 15
+#          send_every: 5
+#          send_first_at: 1
+
+# Mesure de l'Oxygen Reduction Potential (ORP)
+  - platform: template
+#  - platform: ezo
+#    address: 98
+    id: esp125_orp_ezo
+    name: orp_ezo
+    unit_of_measurement: "mV"
+    accuracy_decimals: 0
+    update_interval: 60s
+    lambda: |-
+      return id(internal_ORP).state ;
+    filters:
+#      - multiply: 10
+# moyenne sur 15 mn-affichage toutes les 5mn
+#      - sliding_window_moving_average:
+#          window_size: 15
+#          send_every: 5
+#          send_first_at: 1
+
+
+# Mesure de la pression filtre
+  - platform: template
+#  - platform: adc
+#    pin: A0
+    id: esp125_pression_filtre
+    name: "Pression filtre"
+    unit_of_measurement: "bar"
+    update_interval: 60s
+    lambda: |-
+      return id(internal_Pression_filtre).state ;
+      
+#    attenuation: 11db
+#    filters:
+#      - calibrate_linear:
+#        - 0.58 -> 0
+#        - 0.82 -> 80000
+# moyenne sur 30 mn + affichage toutes les mn
+#      - sliding_window_moving_average:
+#          window_size: 30
+#          send_every: 1
+
+# Avec le 30PSI
+#    filters:
+#      - calibrate_linear:
+#        - 0.5 -> 0.0
+#""        - 2.21 -> 80000
+# moyenne sur 30 mn + affichage toutes les mn
+#      - sliding_window_moving_average:
+#          window_size: 30
+#          send_every: 1
+#
+
+number:
+  - platform: template
+    name: "Pression filtre Manuel"
+    id: internal_Pression_filtre
+    unit_of_measurement: "bar"
+    step: 0.1
+    initial_value: 0.5
+    min_value: 0
+    max_value: 2
+    optimistic: true
+    disabled_by_default: true
+    on_value: 
+      then: 
+        - sensor.template.publish:
+            id: esp125_pression_filtre
+            state: !lambda 'return x;'
+
+  - platform: template
+    name: "Ph Manuel"
+    id: internal_Ph
+    unit_of_measurement: "pH"
+    step: 0.1
+    initial_value: 7.1
+    min_value: 6
+    max_value: 8
+    optimistic: true
+    disabled_by_default: true
+    on_value: 
+      then: 
+        - sensor.template.publish:
+            id: esp125_ph_ezo
+            state: !lambda 'return x;'
+            
+  - platform: template
+    name: "ORP Manuel"
+    id: internal_ORP
+    unit_of_measurement: "mV"
+    step: 10
+    initial_value: 550
+    min_value: 0
+    max_value: 900
+    optimistic: true
+    disabled_by_default: true
+    on_value: 
+      then: 
+        - sensor.template.publish:
+            id: esp125_orp_ezo
+            state: !lambda 'return x;'
+
+binary_sensor:
+  - platform: status
+    name: "ESP Piscine Status"
+    
+# Relay
+switch:
+# Eclairage
+  - platform: gpio
+    name: "Lumiere Piscine"
+    pin: 
+      number: GPIO27
+    restore_mode: ALWAYS_OFF
+    inverted: yes
+    id: lumiere_piscine
+    icon: mdi:lightbulb-outline
+    internal: true
+    on_turn_on:
+      switch.template.publish:
+          id: cde_eclairage
+          state: true
+    on_turn_off:
+      switch.template.publish:
+        id: cde_eclairage
+        state: false
+  - platform: template
+    #name: "Lumiere Switch"
+    name: "Cde Ecl Piscine"
+    #id: lumiere_switch
+    id: "cde_eclairage"
+    icon: mdi:lightbulb-outline
+    optimistic: true
+    lambda: |-
+      if (id(lumiere_piscine).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - switch.turn_on: lumiere_piscine
+    turn_off_action:
+      - switch.turn_off: lumiere_piscine
+
+# Moteur Pompe
+  - platform: gpio
+    name: "Pool Pump Relay"
+    pin: 
+      # number: GPIO26
+      number: GPIO14 #high on boot
+    restore_mode: ALWAYS_OFF
+    inverted: yes
+    id: pool_pump_relay
+    # icon: mdi:water-pump
+    icon: mdi:pump
+    internal: true
+    on_turn_on:
+      switch.template.publish:
+          id: cde_pompe_filtration
+          state: true
+    on_turn_off:
+      switch.template.publish:
+        id: cde_pompe_filtration
+        state: false
+  - platform: template
+    name: "Ppe filtration"
+    #name: "Pool Switch"
+    #id: pool_pump
+    id: "cde_pompe_filtration"
+    icon: mdi:water-pump
+    lambda: |-
+      if (id(pool_pump_relay).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - switch.turn_on: pool_pump_relay
+    turn_off_action:
+      - switch.turn_off: pool_pump_relay
+    
+# Robot Piscine
+  - platform: gpio
+    name: "Pool Robot Relay"
+    pin: 
+      number: GPIO25
+    restore_mode: ALWAYS_OFF
+    inverted: yes
+    internal: true
+    id: pool_robot_relay
+    icon: mdi:robot-mower-outline
+    on_turn_on:
+      switch.template.publish:
+          id: pool_robot
+          state: true
+    on_turn_off:
+      switch.template.publish:
+        id: pool_robot
+        state: false
+  - platform: template
+    name: "Pool Switch Robot"
+    id: pool_robot
+    icon: mdi:robot-mower-outline
+    lambda: |-
+      if (id(pool_robot_relay).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - switch.turn_on: pool_robot_relay
+    turn_off_action:
+      - switch.turn_off: pool_robot_relay
+      
+
+    
+# Eteint lumiere la nuit
+# Eteint lumiere la nuit
+
+time:
+  - platform: homeassistant # HomeSsistant as time source
+    timezone: Europe/Paris
+    id: homeassistant_time
+    on_time:
+      # Every morning 
+      - seconds: 0
+        minutes: 5
+        hours: 0
+        then:
+          if:
+            condition:
+              time.has_time:
+            then:
+              - switch.turn_off: lumiere_piscine
+              - switch.turn_off: pool_pump_relay
+            else:
+              - logger.log: Time pas synchrone
+
+
+# We indicate the pin of the board's LED to blink according to its status
+# https://esphome.io/components/status_led.html
+#status_led:
+#  pin: GPIO2
