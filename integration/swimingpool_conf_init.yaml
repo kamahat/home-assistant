@@ -18,9 +18,6 @@ input_boolean:
     name: b_ph_sensor
     initial: off
 
-  simu_pressure_sensor:
-    name: b_pression_filtre
-    initial: off
 
 ############################
 
@@ -31,35 +28,45 @@ template:
     - name: f_orp_ezo
       unique_id: f_orp_ezo
       unit_of_measurement: "mV"
+      device_class: VOLTAGE
       state: >
         {% if is_state('input_boolean.simu_orp_sensor', 'off') %}
-          {{ states('sensor.orp_ezo') | float(0) |round(0, default=666) }}
+          {{ states('sensor.mouillezalin_orp') | float(0) |round(0, default=666) }}
         {% else %}
             {{ states('sensor.simul_orp_ezo') | float(0) |round(0, default=656) }}
         {% endif %}
     - name: f_ph_ezo
       unique_id: f_ph_ezo
+      device_class: PH
       unit_of_measurement: "pH"
       state: >
         {% if is_state('input_boolean.simu_ph_sensor', 'off') %}
-          {{ states('sensor.ph_ezo') | float(0) |round(2, default=7.11) }}
+          {{ states('sensor.mouillezalin_ph_2') | float(0) |round(2, default=7.11) }}
         {% else %}
             {{ states('sensor.simul_ph_ezo') | float(0) |round(1, default=7.12) }}
         {% endif %}
-    - name: f_pression_filtre
-      unique_id: f_pression_filtre
-      unit_of_measurement: "bar"
+    - name: t_temperature_piscine
+      unique_id: f_temperature_piscine
+      device_class: TEMPERATURE
+      unit_of_measurement: '°C'
       state: >
-        {% if is_state('input_boolean.simu_pressure_sensor', 'off') %}
-          {{ states('sensor.pression_filtre') | float(0) | round(2, default=0.8) }}
+        {% if is_state('switch.ppe_filtration', 'on') %}
+          {{ states('sensor.temp_piscine') | float(0)  }}
         {% else %}
-            {{ (states('sensor.simul_pression_filtre') | float(0)  /100000 )|round(2, default=0.81) }}
+            {{ states('sensor.mouillezalin_temperature_2') | float(0) }}
         {% endif %}
-
-
+      
 #####################
 # Simulation
 sensor:
+  - platform: statistics
+    name: f_temperature_piscine
+    unique_id: f_temperature_piscine
+    entity_id: sensor.t_temperature_piscine
+    state_characteristic: average_linear
+    precision: 1
+    max_age:
+      hours: 2
   - platform: simulated
     name: simul_orp_ezo
     unit: "mV"
@@ -80,14 +87,4 @@ sensor:
     phase: 20
     seed: 998
     relative_to_epoch: false
-  - platform: simulated
-    name: simul_pression_filtre
-    unit: "Pa"
-    amplitude: 3000 # Turns on the periodic contribution
-    mean: 90000
-    spread: 10000
-    period: 7200
-    phase: 20
-    seed: 999
-    relative_to_epoch: false
-    #
+

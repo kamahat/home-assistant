@@ -8,28 +8,32 @@
 utility_meter:
 # usage jour  
   energy_pisc_usage_daily:
-    source: sensor.pzem_pisc_energy
+    #source: sensor.pzem_pisc_energy
+    source: sensor.nrj_meter_garage_energy_b
     cycle: daily
     tariffs:
       - hp
       - hc
 # usage semaine
   energy_pisc_usage_weekly:
-    source: sensor.pzem_pisc_energy
+    #source: sensor.pzem_pisc_energy
+    source: sensor.nrj_meter_garage_energy_b
     cycle: weekly
     tariffs:
       - hp
       - hc
 # usage mois
   energy_pisc_usage_monthly:
-    source: sensor.pzem_pisc_energy
+    #source: sensor.pzem_pisc_energy
+    source: sensor.nrj_meter_garage_energy_b
     cycle: monthly
     tariffs:
       - hp
       - hc
 #usage an
   energy_pisc_usage_yearly:
-    source: sensor.pzem_pisc_energy
+    #source: sensor.pzem_pisc_energy
+    source: sensor.nrj_meter_garage_energy_b
     cycle: yearly
     tariffs:
       - hp
@@ -41,7 +45,8 @@ sensor:
   # Affichage du temps de fonctionnement de la pompe ce jour
   - platform: history_stats
     name: Ma Ppe Piscine Jour
-    entity_id: binary_sensor.ppe_piscine_en_marche
+    #entity_id: binary_sensor.ppe_piscine_en_marche
+    entity_id: switch.ppe_filtration
     state: "on"
     type: time
     start: "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}"
@@ -53,7 +58,7 @@ sensor:
 template:
   - sensor:
     - name: "Energie Piscine Jour"
-      unique_id: "energy_pisc_daily" 
+      unique_id: "7be69ed1-e240-4912-8280-26e561acb020" 
       state: >-
         {% set p = states('sensor.energy_pisc_usage_daily_hp') | float(default=0) | round(2) %}
         {% set o = states('sensor.energy_pisc_usage_daily_hc') | float(default=0) | round(2) %}
@@ -63,6 +68,7 @@ template:
       state_class: "total"
 
     - name: "energy_pisc_weekly"
+      unique_id: "1f04e12d-ae94-4bd1-9561-fd89fd91ee73"
       state: >-
         {% set p = states('sensor.energy_pisc_usage_weekly_hp') | float(default=0) | round(2) %}
         {% set o = states('sensor.energy_pisc_usage_weekly_hc') | float(default=0) | round(2) %}
@@ -72,6 +78,7 @@ template:
       state_class: "total"  
 
     - name: "energy_pisc_monthly"
+      unique_id: "a3d77ce3-dd99-449f-8620-4652f97ade40"
       state: >-
         {% set p = states('sensor.energy_pisc_usage_monthly_hp') | float(default=0) | round(2) %}
         {% set o = states('sensor.energy_pisc_usage_monthly_hc') | float(default=0) | round(2) %}
@@ -81,6 +88,7 @@ template:
       state_class: "total"  
 
     - name: "energy_pisc_yearly"
+      unique_id: "097420e2-a25e-4b2c-ba5a-ef56f739755a"
       state: >-
         {% set p = states('sensor.energy_pisc_usage_yearly_hp') | float(default=0) | round(2) %}
         {% set o = states('sensor.energy_pisc_usage_yearly_hc') | float(default=0) | round(2) %}
@@ -89,9 +97,9 @@ template:
       device_class: "energy"
       state_class: "total"  
 
-notify:
-# Log values in files
-  - name: log_piscine
-    platform: file
-    filename: conso_piscine.csv
-    timestamp: True
+# notify:
+# # Log values in files
+#   - name: log_piscine
+#     platform: file
+#     filename: conso_piscine.csv
+#     timestamp: True

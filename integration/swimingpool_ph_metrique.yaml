@@ -8,7 +8,7 @@ input_text:
   pisc_ph_metrique_yaml:
     name: "A voir plus tard  pisc_ph_metrique.yaml"
 
-# sensor:
+sensor:
   # - platform: history_stats
   #   name: pH_derniere_heure
   #   entity_id: switch.ppe_ph
@@ -25,28 +25,31 @@ input_text:
   #   end: '{{now()}}'
   #   duration: 48:00:00
 
-# # Statistiques pH
-#   - platform: statistics
-#     name: ph_stat_median
-#     entity_id: sensor.ph_piscine_ph
-#     unique_id: ph_median
-#     state_characteristic: median
-#     sampling_size: 30
-#     #max_age:
-#       # minutes: 30
-#   - platform: statistics
-#     name: ph_stat_moyenne
-#     entity_id: sensor.ph_piscine_ph
-#     unique_id: ph_moyen
-#     state_characteristic: average_step
-#     sampling_size: 30
-#     #max_age:
-#       # minutes: 30
-#   - platform: statistics
-#     name: ph_stat_standard_deviation
-#     entity_id: sensor.ph_piscine_ph
-#     unique_id: ph_std
-#     state_characteristic: standard_deviation
-#     sampling_size: 30
-#     #max_age:
-#       # minutes: 30      
+# Statistiques pH
+  - platform: statistics
+    name: ph_stat_median
+    # entity_id: sensor.ph_piscine_ph
+    entity_id: sensor.mouillezalin_ph
+    unique_id: ph_median
+    state_characteristic: median
+    sampling_size: 30
+    #max_age:
+      # minutes: 30
+  - platform: statistics
+    name: ph_stat_moyenne
+    # entity_id: sensor.ph_piscine_ph
+    entity_id: sensor.mouillezalin_ph
+    unique_id: ph_moyen
+    state_characteristic: average_step
+    sampling_size: 30
+    #max_age:
+      # minutes: 30
+  - platform: statistics
+    name: ph_stat_standard_deviation
+    # entity_id: sensor.ph_piscine_ph
+    entity_id: sensor.mouillezalin_ph
+    unique_id: ph_std
+    state_characteristic: standard_deviation
+    sampling_size: 30
+    #max_age:
+      # minutes: 30      
