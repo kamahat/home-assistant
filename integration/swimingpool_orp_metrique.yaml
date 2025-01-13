@@ -2,6 +2,9 @@
 #                                                  #
 #                   ORP Piscine                    #
 #                   Metriques                      #
+# ORP stands for oxidation-reduction potential, which is
+# a measure, in millivolts, of the tendency of a chemical
+# substance to oxidize or reduce another chemical substance.
 ####################################################
 
 #input_boolean:
@@ -28,7 +31,8 @@ sensor:
   # Statistiques orp
   - platform: statistics
     name: orp_stat_median
-    entity_id: sensor.orp_piscine_orp
+    # entity_id: sensor.orp_piscine_orp
+    entity_id: sensor.mouillezalin_chlore
     state_characteristic: median
     sampling_size: 30
     #max_age:
@@ -36,7 +40,8 @@ sensor:
 
   - platform: statistics
     name: orp_stat_moyenne
-    entity_id: sensor.orp_piscine_orp
+    # entity_id: sensor.orp_piscine_orp
+    entity_id: sensor.mouillezalin_chlore
     state_characteristic: average_step
     sampling_size: 30
     #max_age:
@@ -44,7 +49,8 @@ sensor:
 
   - platform: statistics
     name: orp_stat_standard_deviation
-    entity_id: sensor.orp_piscine_orp
+    # entity_id: sensor.orp_piscine_orp
+    entity_id: sensor.mouillezalin_chlore
     state_characteristic: standard_deviation
     sampling_size: 30
     #max_age:
