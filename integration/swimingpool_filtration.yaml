@@ -9,26 +9,32 @@
 #  Template
 template:
   - binary_sensor:
-    # Si la puissance electrique est superieure à 500w, on considere que la pompe est en fonctionnement
-    # ou tester le switch de la ppe de filtration si pas de mesure de puissance
-    # {{ is_state('switch.ppe_filtration', 'on') }}
-    # {{states.sensor.pzem_pisc_puissance.state | float(default=0) > 500}}
-    - name: "ppe_piscine_en_marche"
-      state: >-
-        {{ is_state('switch.ppe_filtration', 'on') }}
+      # if power is over 500W, pump is stated running (close loop implementation)
+      # Otherwise we can test if the state of pump power switch is up (open loop implementation)
+      # {{ is_state('switch.ppe_filtration', 'on') }}
+      # {{ states('sensor.pzem_pisc_puissance.state') | float(default=0) > 500}}
+      #
+      # seuil utilise 500/sqrt(2)
+      - name: "ppe_piscine_en_marche"
+        state: >-
+          {{ states('sensor.nrj_meter_garage_power_b') | float(default=0) > 350}}
 
   - sensor:
-    - name: "Heure pivot Soleil"
-      unique_id: "heure_pivot_soleil"
-      state: >
-        {{ as_timestamp(state_attr("sun.sun", "next_noon")) | timestamp_custom('%H %M')}}
-      icon: mdi:weather-sunset
-#{{ as_timestamp(states.sun.sun.attributes.next_noon) | timestamp_custom(' %H %M')}}
+      - name: "Heure pivot Soleil"
+        unique_id: "heure_pivot_soleil"
+        icon: mdi:weather-sunset
+        #from sun2
+        state: >
+          {{ as_timestamp(states('sensor.villevieille_sun_solar_noon')) | timestamp_custom('%H %M')}}
+#
+#        {{ as_timestamp(state_attr("sun.sun", "next_noon")) | timestamp_custom('%H %M')}}
+#        {% set dt = states('sensor.power_highest_peak_time_today') | as_datetime | as_local %}
+#        {{ dt.strftime('%H %M') }}
 
 ############################
 #  Input Numbers
 input_number:
-# temperature de l'eau avant arret ppe
+  # temperature de l eau avant arret ppe
   mem_temp_piscine:
     name: Temp Eau avant arret
     min: -5
@@ -37,9 +43,9 @@ input_number:
     step: 0.1
     icon: mdi:thermometer
     mode: box
-    initial: 18
+  #    initial: 18
 
-# tempo avant prise en compte de la température de l'eau suite à demarrage marche pompe
+  # tempo avant prise en compte de la température de l eau suite à demarrage marche pompe
   tempo_circulation_eau:
     name: Tempo Circulation Eau
     min: 0
@@ -50,14 +56,14 @@ input_number:
     mode: box
     initial: 300
 
-# Seuil 1 inferieur temperature Hors gel
+  # Seuil 1 inferieur temperature Hors gel
   hors_gel_inf_seuil1:
     name: Temp Inf Hors-Gel Seuil 1
     min: -5
     max: 0
     unit_of_measurement: °C
     icon: mdi:thermometer
-# Seuil 2 inferieur temperature Hors gel
+  # Seuil 2 inferieur temperature Hors gel
   hors_gel_inf_seuil2:
     name: Temp Inf Hors-Gel Seuil 2
     min: -10
@@ -65,17 +71,17 @@ input_number:
     unit_of_measurement: °C
     icon: mdi:thermometer
 
-# Durée de filtration max en hiver
+  # Durée de filtration max en hiver
   duree_filtration_max_mode_hiver:
     name: Durée filtration en Hiver
     min: 0
-    max: 15
+    max: 4
     unit_of_measurement: h
     step: 0.1
     icon: mdi:clock
     mode: box
 
-# Durée de filtration en été calculée par appdaemon
+  # Durée de filtration en été calculée par appdaemon
   duree_filtration_ete:
     name: Durée filtration en Ete
     min: 0
@@ -85,7 +91,7 @@ input_number:
     icon: mdi:clock
     mode: box
 
-# Durée de filtration max en hiver
+  # Durée de filtration max en hiver
   filtration_coeff_abaque:
     name: Coeff filtration Piscine Abaque
     min: 60
@@ -113,7 +119,6 @@ input_datetime:
 ############################
 #  Input boolean
 input_boolean:
-
   #cde eclairage piscine ???????????????????????????
   eclairage_piscine:
     name: Eclairage piscine
@@ -129,7 +134,7 @@ input_boolean:
   calcul_mode_abaque:
     name: Cacul mode Abaque (si=1)
     icon: mdi:chart-bar
-    initial: false
+    initial: true
 
 ############################
 
@@ -146,11 +151,13 @@ input_select:
     initial: "Ete"
 
 ############################
-#  Input text    
+#  Input text
 input_text:
   # Affiche la periode de Filtration
-  piscine_periode_filtration:   
+  piscine_periode_filtration:
     name: Periode Filtration
+  test_piscine_periode_filtration:
+    name: Test Periode Filtration
 
 script:
   do_nothing:
